@@ -189,7 +189,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   void _calculate() {
+    _dismissKeyboard();
     if (!_formKey.currentState!.validate()) return;
     final principal = parseFormattedNumber(_principalCtrl.text) ?? 0;
     final rate = parseFormattedNumber(_rateCtrl.text) ?? 0;
@@ -256,7 +261,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final result = _result;
-    return Scaffold(
+    return GestureDetector(
+      onTap: _dismissKeyboard,
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,
         centerTitle: true,
@@ -323,6 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: const EastmarkFooter(includeBottomSafeArea: true),
+    ),
     );
   }
 
@@ -359,6 +368,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             textAlign: TextAlign.right,
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
+                            textInputAction: TextInputAction.done,
+                            onTapOutside: (_) => _dismissKeyboard(),
+                            onFieldSubmitted: (_) => _dismissKeyboard(),
                             inputFormatters: [ThousandsInputFormatter()],
                             decoration: InputDecoration(
                               labelText: _l10n.t('initialInvestment'),
@@ -402,6 +414,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         controller: _principalCtrl,
                         textAlign: TextAlign.right,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        textInputAction: TextInputAction.done,
+                        onTapOutside: (_) => _dismissKeyboard(),
+                        onFieldSubmitted: (_) => _dismissKeyboard(),
                         inputFormatters: [ThousandsInputFormatter()],
                         decoration: InputDecoration(
                           labelText: _l10n.t('initialInvestment'),
@@ -442,6 +457,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: _rateCtrl,
                       textAlign: TextAlign.right,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      textInputAction: TextInputAction.next,
+                      onTapOutside: (_) => _dismissKeyboard(),
                       decoration: InputDecoration(
                         labelText: _l10n.t('annualRate'),
                         hintText: '0',
@@ -456,6 +473,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: _yearsCtrl,
                       textAlign: TextAlign.right,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      onTapOutside: (_) => _dismissKeyboard(),
+                      onFieldSubmitted: (_) => _dismissKeyboard(),
                       decoration: InputDecoration(
                         labelText: _l10n.t('numberOfYears'),
                         hintText: '0',
@@ -504,6 +524,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         controller: _contributionCtrl,
                         textAlign: TextAlign.right,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        textInputAction: TextInputAction.done,
+                        onTapOutside: (_) => _dismissKeyboard(),
+                        onFieldSubmitted: (_) => _dismissKeyboard(),
                         inputFormatters: [ThousandsInputFormatter()],
                         decoration: InputDecoration(
                           labelText: _l10n.t('contributionAmount'),

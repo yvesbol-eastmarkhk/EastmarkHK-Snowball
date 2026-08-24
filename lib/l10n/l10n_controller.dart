@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/apple_intelligence_channel.dart';
 import '../services/on_demand_ui_translator.dart';
 import '../services/ui_translation_store.dart';
 import 'app_strings.dart';
@@ -9,7 +10,8 @@ import 'locale_names.dart';
 
 /// Owns the app's current language: detects the OS language on first
 /// launch, lets the user override it, and lazily translates AppStrings.en
-/// via OnDemandUiTranslator (Apple Translation, falling back to Mistral) —
+/// via OnDemandUiTranslator (Apple Intelligence, then Apple Translation,
+/// then Mistral) —
 /// same mechanism as the EastmarkHK e-Invoicing app. Packs are cached to
 /// disk by UiTranslationStore, so each language is only ever translated
 /// once per install.
@@ -121,8 +123,13 @@ class L10nController extends ChangeNotifier {
     _isTranslating = true;
     _translateDone = 0;
     _translateTotal = AppStrings.en.length;
-    _translatingEngine =
-        await OnDemandUiTranslator.appleAvailable(code) ? 'Apple Intelligence' : 'Mistral AI';
+    if (await AppleIntelligenceChannel.isAvailable()) {
+      _translatingEngine = 'Apple Intelligence';
+    } else if (await OnDemandUiTranslator.appleAvailable(code)) {
+      _translatingEngine = 'Apple Translation';
+    } else {
+      _translatingEngine = 'Mistral AI';
+    }
     notifyListeners();
 
     try {
@@ -179,7 +186,8 @@ class L10nController extends ChangeNotifier {
       return 'Mistral rate limit reached. Try again in a moment.\n$raw';
     }
     if (lower.contains('api key missing')) {
-      return 'Mistral API key is missing from the app configuration.\n$raw';
+      return 'Add a free Mistral API key in Settings. '
+          'Apple on-device translation was not used, so the app stayed in English.';
     }
     return raw;
   }

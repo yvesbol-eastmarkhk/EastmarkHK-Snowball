@@ -12,11 +12,35 @@ class AppStrings {
     'languageNoneFound': 'No matches',
     'systemLanguage': 'System language',
     'translating': 'Translating…',
-    'translationEngineApple': 'Translated on-device with Apple Intelligence',
+    'translationEngineApple': 'Translated on-device by Apple',
     'translationEngineMistral': 'Translated with Mistral AI',
     'translationUnavailable': 'Translation unavailable — showing English.',
     'translationProblem': 'What went wrong',
     'retranslate': 'Re-translate',
+    'save': 'Save',
+    'cancel': 'Cancel',
+    'clear': 'Clear',
+    'settingsShowKey': 'Show key',
+    'settingsHideKey': 'Hide key',
+    'settingsMistralApiKey': 'Mistral API key',
+    'settingsMistralApiKeyHint':
+        'Used when Apple on-device translation is not available. Stored on this device only.',
+    'settingsMistralCreateKey': 'Open Mistral to create an API key',
+    'settingsMistralStepsTitle': 'How to get your free key',
+    'settingsMistralStep1':
+        '1. Tap the button below — it opens Mistral API keys (sign in or create a free account).',
+    'settingsMistralStep2': '2. Create an API key.',
+    'settingsMistralStep3': '3. Copy the key.',
+    'settingsMistralStep4':
+        '4. Paste it in the field below, then tap Save.',
+    'settingsMistralKeyNeeded':
+        'Mistral fallback needs a free API key. Open Mistral to create one, copy it, paste it, then save.',
+    'settingsMistralKeyInvalid':
+        'Invalid Mistral API key. Paste the key from console.mistral.ai (no spaces or accents).',
+    'settingsMistralKeySaved': 'Key saved on this device.',
+    'settingsMistralKeyMissing': 'No key saved on this device.',
+    'settingsMistralKeyCleared': 'Key removed from this device.',
+    'settingsMistralSaving': 'Checking the key…',
 
     'yourInvestment': 'Your investment',
     'initialInvestment': 'Initial investment',

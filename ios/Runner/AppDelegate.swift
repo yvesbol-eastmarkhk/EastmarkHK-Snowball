@@ -13,6 +13,10 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
+    if let appleIntelligenceRegistrar =
+        engineBridge.pluginRegistry.registrar(forPlugin: "AppleIntelligenceHandler") {
+      AppleIntelligenceHandler.register(with: appleIntelligenceRegistrar)
+    }
     if let uiTranslationRegistrar =
         engineBridge.pluginRegistry.registrar(forPlugin: "UiTranslationHandler") {
       UiTranslationHandler.register(with: uiTranslationRegistrar)

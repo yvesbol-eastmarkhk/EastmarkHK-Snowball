@@ -29,7 +29,8 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
         return
       }
       Task {
-        result(await Self.checkAvailable(source: source, target: target))
+        let ok = await Self.checkAvailable(source: source, target: target)
+        await MainActor.run { result(ok) }
       }
 
     case "translateBatch":
@@ -45,11 +46,16 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
       }
       Task {
         do {
-          result(try await Self.translateBatch(
-            source: source, target: target, ids: ids, texts: texts))
+          let map = try await Self.translateBatch(
+            source: source, target: target, ids: ids, texts: texts)
+          await MainActor.run { result(map) }
         } catch {
-          result(FlutterError(
-            code: "translate_failed", message: error.localizedDescription, details: nil))
+          await MainActor.run {
+            result(FlutterError(
+              code: "translate_failed",
+              message: error.localizedDescription,
+              details: nil))
+          }
         }
       }
 
@@ -58,19 +64,48 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
     }
   }
 
+  static func normalizeLang(_ code: String) -> String {
+    code.trimmingCharacters(in: .whitespacesAndNewlines)
+      .replacingOccurrences(of: "_", with: "-")
+  }
+
+  static func languageCandidates(_ code: String) -> [String] {
+    let n = normalizeLang(code)
+    var ids = [n]
+    let base = n.split(separator: "-").first.map(String.init) ?? n
+    if base != n { ids.append(base) }
+    let regionHints: [String: String] = [
+      "en": "en-US", "fr": "fr-FR", "de": "de-DE", "es": "es-ES", "it": "it-IT",
+      "nl": "nl-NL", "pt": "pt-BR", "pt-BR": "pt-BR", "pt-PT": "pt-PT",
+      "zh": "zh-Hans", "ja": "ja-JP", "ko": "ko-KR",
+    ]
+    if let hint = regionHints[n] ?? regionHints[base] {
+      ids.append(hint)
+    }
+    var seen = Set<String>()
+    return ids.filter { seen.insert($0.lowercased()).inserted }
+  }
+
   static func checkAvailable(source: String, target: String) async -> Bool {
 #if canImport(Translation)
     if #available(iOS 18.0, *) {
       let availability = LanguageAvailability()
-      let from = Locale.Language(identifier: source.replacingOccurrences(of: "_", with: "-"))
-      let to = Locale.Language(identifier: target.replacingOccurrences(of: "_", with: "-"))
-      let status = await availability.status(from: from, to: to)
-      switch status {
-      case .installed, .supported:
-        return true
-      default:
-        return false
+      for fromId in languageCandidates(source) {
+        for toId in languageCandidates(target) {
+          let status = await availability.status(
+            from: Locale.Language(identifier: fromId),
+            to: Locale.Language(identifier: toId)
+          )
+          switch status {
+          case .installed, .supported:
+            return true
+          default:
+            break
+          }
+        }
       }
+      // Same as macOS: still try. The SwiftUI session can download the pack.
+      return true
     }
 #endif
     return false
@@ -79,21 +114,91 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
   static func translateBatch(
     source: String, target: String, ids: [String], texts: [String]
   ) async throws -> [String: String] {
-#if canImport(Translation) && canImport(SwiftUI)
+#if canImport(Translation)
     if #available(iOS 18.0, *) {
-      return try await withCheckedThrowingContinuation { cont in
-        DispatchQueue.main.async {
-          TranslationBridgeHost(
-            source: source, target: target, ids: ids, texts: texts
-          ) { result in cont.resume(with: result) }.start()
-        }
-      }
+      return try await Self.translateBatch18(
+        source: source, target: target, ids: ids, texts: texts)
     }
 #endif
     throw NSError(
       domain: "UiTranslation", code: 1,
       userInfo: [NSLocalizedDescriptionKey: "Apple Translation unavailable"])
   }
+
+#if canImport(Translation)
+  @available(iOS 18.0, *)
+  static func translateBatch18(
+    source: String, target: String, ids: [String], texts: [String]
+  ) async throws -> [String: String] {
+    let availability = LanguageAvailability()
+    var bestFrom = languageCandidates(source).first ?? source
+    var bestTo = languageCandidates(target).first ?? target
+    var installed = false
+    for fromId in languageCandidates(source) {
+      for toId in languageCandidates(target) {
+        let status = await availability.status(
+          from: Locale.Language(identifier: fromId),
+          to: Locale.Language(identifier: toId)
+        )
+        if status == .installed {
+          bestFrom = fromId
+          bestTo = toId
+          installed = true
+          break
+        }
+        if status == .supported && !installed {
+          bestFrom = fromId
+          bestTo = toId
+        }
+      }
+      if installed { break }
+    }
+
+    if installed {
+      if #available(iOS 26.0, *) {
+        do {
+          let session = TranslationSession(
+            installedSource: Locale.Language(identifier: bestFrom),
+            target: Locale.Language(identifier: bestTo)
+          )
+          return try await runSession(session, ids: ids, texts: texts)
+        } catch {
+          // Fall through to the SwiftUI session, which can prompt a download.
+        }
+      }
+    }
+
+#if canImport(SwiftUI)
+    return try await withCheckedThrowingContinuation { cont in
+      DispatchQueue.main.async {
+        TranslationBridgeHost(
+          source: bestFrom, target: bestTo, ids: ids, texts: texts
+        ) { result in cont.resume(with: result) }.start()
+      }
+    }
+#else
+    throw NSError(
+      domain: "UiTranslation", code: 1,
+      userInfo: [NSLocalizedDescriptionKey: "Apple Translation SwiftUI unavailable"])
+#endif
+  }
+
+  @available(iOS 18.0, *)
+  static func runSession(
+    _ session: TranslationSession, ids: [String], texts: [String]
+  ) async throws -> [String: String] {
+    let requests = zip(ids, texts).map { id, text in
+      TranslationSession.Request(sourceText: text, clientIdentifier: id)
+    }
+    let responses = try await session.translations(from: requests)
+    var map: [String: String] = [:]
+    for (i, response) in responses.enumerated() {
+      let key = response.clientIdentifier ?? (i < ids.count ? ids[i] : "\(i)")
+      map[key] = response.targetText
+    }
+    return map
+  }
+#endif
 }
 
 #if canImport(Translation) && canImport(SwiftUI)
@@ -124,13 +229,15 @@ final class TranslationBridgeHost {
       onDone: { [weak self] result in self?.finish(result) }
     )
     let hosting = UIHostingController(rootView: root)
-    hosting.view.alpha = 0.01
-    hosting.view.isUserInteractionEnabled = false
+    hosting.view.backgroundColor = .clear
+    hosting.view.isOpaque = false
+    hosting.view.isUserInteractionEnabled = true
     if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
        let rootVC = scene.windows.first?.rootViewController {
       rootVC.addChild(hosting)
+      hosting.view.frame = rootVC.view.bounds
+      hosting.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
       rootVC.view.addSubview(hosting.view)
-      hosting.view.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
       hosting.didMove(toParent: rootVC)
       host = hosting
     } else {
@@ -170,7 +277,8 @@ struct TranslationBridgeView: View {
 
   var body: some View {
     Color.clear
-      .frame(width: 1, height: 1)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .contentShape(Rectangle())
       .translationTask(configuration) { session in
         Task {
           do {
@@ -190,9 +298,11 @@ struct TranslationBridgeView: View {
         }
       }
       .onAppear {
+        let from = UiTranslationHandler.languageCandidates(source).first ?? source
+        let to = UiTranslationHandler.languageCandidates(target).first ?? target
         configuration = TranslationSession.Configuration(
-          source: Locale.Language(identifier: source.replacingOccurrences(of: "_", with: "-")),
-          target: Locale.Language(identifier: target.replacingOccurrences(of: "_", with: "-"))
+          source: Locale.Language(identifier: from),
+          target: Locale.Language(identifier: to)
         )
       }
   }

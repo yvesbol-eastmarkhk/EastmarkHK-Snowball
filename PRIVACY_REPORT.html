@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Privacy Report — EastmarkHK HS Code</title>
+  <meta name="description" content="Private privacy report for EastmarkHK HS Code.">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.55;
+      color: #1a1a1a;
+      background: #f7f8fa;
+    }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 48px 20px 64px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin: 28px 0 10px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin: 20px 0 8px;
+    }
+
+    a {
+      color: #0b6e4f;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-top: 18px;
+    }
+
+    .muted {
+      color: #667085;
+      font-size: 0.95rem;
+    }
+
+    .warning {
+      border-left: 4px solid #d97706;
+      background: #fffaf0;
+      padding: 12px 14px;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 10px 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      color: #344054;
+      font-weight: 600;
+    }
+
+    code {
+      background: #f2f4f7;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: #667085;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="muted">
+      <a href="https://eastmarkhk.com/">EastmarkHK</a>
+      · Private report
+    </p>
+
+    <h1>Private Privacy Report — EastmarkHK HS Code</h1>
+
+    <p class="muted">
+      Internal document for the EastmarkHK HS Code application.
+      This report covers the macOS, iOS and Windows editions.
+    </p>
+
+    <div class="card">
+      <h2>Status and intended use</h2>
+      <p>
+        This is an internal privacy and data-flow report. It is not the public
+        privacy-policy page. The document is marked
+        <strong>noindex / nofollow</strong> and should not be published as a
+        public legal notice without review.
+      </p>
+
+      <p>
+        <strong>Application:</strong> EastmarkHK HS Code<br>
+        <strong>Platforms:</strong> macOS, iOS and Windows<br>
+        <strong>Report version:</strong> 1.0
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Summary</h2>
+      <ul>
+        <li>The HS and NCM databases are stored and searched locally.</li>
+        <li>Search history, quotations and calculator inputs are stored locally when enabled by the application.</li>
+        <li>Cloud AI is optional and is used only when the user requests classification or tax estimation.</li>
+        <li>When cloud AI is used, the product description and classification context are sent to the selected AI provider.</li>
+        <li>The application does not contain third-party advertising tracking.</li>
+        <li>Official NCM and tariff updates can contact Brazilian government services when an update is requested or scheduled.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Data handled by the application</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Purpose</th>
+            <th>Storage or destination</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Product descriptions and search terms</td>
+            <td>Local HS/NCM search and optional AI classification</td>
+            <td>In memory; may be sent to the selected AI provider when AI is requested</td>
+          </tr>
+          <tr>
+            <td>HS and NCM results</td>
+            <td>Display classification results and alternatives</td>
+            <td>Local application storage and memory</td>
+          </tr>
+          <tr>
+            <td>FOB cost, freight, insurance, taxes, margins and expenses</td>
+            <td>Import-cost and selling-price calculations</td>
+            <td>Local application storage and memory</td>
+          </tr>
+          <tr>
+            <td>Quotations</td>
+            <td>Create and reopen quotations</td>
+            <td>Local application storage</td>
+          </tr>
+          <tr>
+            <td>Country, language and tax-regime preferences</td>
+            <td>Configure the interface and calculations</td>
+            <td>Local preferences</td>
+          </tr>
+          <tr>
+            <td>AI provider API key</td>
+            <td>Authenticate an optional Anthropic or Mistral request</td>
+            <td>Platform-specific application settings or credential storage; never publish it in a report or log</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Optional cloud AI processing</h2>
+
+      <p>
+        The application can use Anthropic or Mistral for product classification
+        and indicative tax estimation. This processing is optional and requires
+        the user to configure an API key and request the relevant operation.
+      </p>
+
+      <p>Depending on the operation, the request can contain:</p>
+
+      <ul>
+        <li>the product description entered by the user;</li>
+        <li>the destination country;</li>
+        <li>candidate HS codes;</li>
+        <li>official Brazilian NCM candidate descriptions, when Brazil is selected;</li>
+        <li>the HS/NCM code used for tax estimation.</li>
+      </ul>
+
+      <p>
+        The application should not send passwords, payment-card information,
+        private keys or unrelated personal information to an AI provider.
+        Users should avoid including such information in product descriptions.
+      </p>
+
+      <p class="warning">
+        AI classifications and tax estimates are indicative. They must be
+        verified against the applicable customs tariff, current legislation,
+        official rulings and, where necessary, a qualified customs professional.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Government and official-data connections</h2>
+
+      <p>
+        The application can download public customs data to update its local
+        databases. The relevant sources include:
+      </p>
+
+      <ul>
+        <li>Brazilian Siscomex / Classif services for NCM nomenclature;</li>
+        <li>Brazilian MDIC / GECEX publications for import-duty data;</li>
+        <li>Brazilian Receita Federal publications for TIPI / IPI data.</li>
+      </ul>
+
+      <p>
+        These connections are used to obtain public tariff information. The
+        application should not transmit a user's complete search history or
+        quotation database as part of a tariff update.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Local databases and retention</h2>
+
+      <p>
+        Public HS, NCM and tariff databases are bundled with the application
+        and may also be updated in the platform's application-support directory.
+        User-created data, including history, quotations and calculator values,
+        is retained locally until the user removes it, clears application data,
+        or uninstalls the application.
+      </p>
+
+      <p>
+        Local files may be included in operating-system backups. Users who work
+        with commercially sensitive prices or quotations should protect their
+        device account and backups.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Data sharing</h2>
+
+      <p>
+        EastmarkHK does not sell or rent application data and does not use it for
+        advertising profiling. Data is shared externally only when required for
+        an explicitly requested operation, such as:
+      </p>
+
+      <ul>
+        <li>an AI request sent to Anthropic or Mistral;</li>
+        <li>a public tariff or nomenclature update requested from an official source;</li>
+        <li>platform services required for distribution or purchase processing.</li>
+      </ul>
+
+      <p>
+        App Store purchase processing, where applicable, is handled by Apple
+        under Apple's own terms and privacy practices.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Security notes</h2>
+
+      <ul>
+        <li>Network requests to configured AI and official-data services use HTTPS.</li>
+        <li>API keys must be protected by the platform's credential-storage mechanism wherever available.</li>
+        <li>Local HS/NCM databases contain public tariff information.</li>
+        <li>User quotation and calculator data should be treated as commercially sensitive.</li>
+        <li>Logging must not include API keys or complete confidential quotations.</li>
+      </ul>
+
+      <p>
+        Before publishing a definitive public policy, the storage mechanism for
+        each platform should be verified in the current release build,
+        particularly for API-key storage and local user databases.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>User controls</h2>
+
+      <ul>
+        <li>The user can choose whether to use cloud AI.</li>
+        <li>The user can use local HS/NCM search without an AI request when the local databases are available.</li>
+        <li>The user can edit or delete locally stored quotations and search data through the application or operating-system storage controls.</li>
+        <li>The user can remove an API key from the application's settings or credential storage.</li>
+        <li>The user can disable network access at the operating-system or network level, although online AI and database updates will then be unavailable.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Review items before public release</h2>
+
+      <ul>
+        <li>Confirm the exact API-key storage implementation on macOS, iOS and Windows.</li>
+        <li>Confirm the exact names and locations of local history and quotation databases.</li>
+        <li>Confirm whether telemetry, crash reporting or analytics are included in the release build.</li>
+        <li>Confirm the applicable data-processing terms of Anthropic and Mistral.</li>
+        <li>Replace this internal report with a reviewed public privacy policy at <code>/privacy/</code>.</li>
+        <li>Replace the contact details below with a monitored privacy contact.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Contact</h2>
+      <p>
+        Privacy:
+        <a href="mailto:eastmarkhk@eastmarkhk.com">eastmarkhk@eastmarkhk.com</a><br>
+        Support:
+        <a href="https://eastmarkhk.com/support">https://eastmarkhk.com/support</a><br>
+        Website:
+        <a href="https://eastmarkhk.com/">https://eastmarkhk.com/</a>
+      </p>
+    </div>
+
+    <p class="footer">
+      Internal / confidential · Do not publish without legal and technical review.
+    </p>
+  </main>
+</body>
+</html>

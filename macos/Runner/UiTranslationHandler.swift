@@ -31,7 +31,7 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
       }
       Task {
         let ok = await Self.checkAvailable(source: source, target: target)
-        result(ok)
+        await MainActor.run { result(ok) }
       }
 
     case "translateBatch":
@@ -49,13 +49,15 @@ class UiTranslationHandler: NSObject, FlutterPlugin {
         do {
           let map = try await Self.translateBatch(
             source: source, target: target, ids: ids, texts: texts)
-          result(map)
+          await MainActor.run { result(map) }
         } catch {
           NSLog("UiTranslation translateBatch error: %@", error.localizedDescription)
-          result(FlutterError(
-            code: "translate_failed",
-            message: error.localizedDescription,
-            details: nil))
+          await MainActor.run {
+            result(FlutterError(
+              code: "translate_failed",
+              message: error.localizedDescription,
+              details: nil))
+          }
         }
       }
 

@@ -12,6 +12,10 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    let appleIntelligenceRegistrar =
+      flutterViewController.registrar(forPlugin: "AppleIntelligenceHandler")
+    AppleIntelligenceHandler.register(with: appleIntelligenceRegistrar)
+
     let uiTranslationRegistrar =
       flutterViewController.registrar(forPlugin: "UiTranslationHandler")
     UiTranslationHandler.register(with: uiTranslationRegistrar)

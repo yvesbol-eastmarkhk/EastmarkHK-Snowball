@@ -34,13 +34,15 @@ flutter:
     - assets/splash_mobile.png
     - assets/splash_desktop.png
 
-# Native iOS/Android launch screen: brand green + diamond mark. The designed
-# splash_mobile / splash_desktop artwork is shown by Flutter for 3 seconds
-# (see lib/widgets/splash_background.dart) — Android cannot use the full
-# 3040px splash as a drawable, which previously generated blank 1×1 images.
+# Native launch must match the Flutter splash (splash_mobile / splash_desktop).
+# Do not put logo_full.png here — that showed an icon-only screen before the
+# real artwork. iPhone/iPad images are set in LaunchImage.imageset.
 flutter_native_splash:
   color: "#0B6E4F"
-  image: assets/logo_full.png
+  background_image: assets/splash_mobile.png
+  ios_content_mode: scaleAspectFill
+  android_gravity: fill
+  fullscreen: true
   android_12:
     image: assets/logo_full.png
     icon_background_color: "#0B6E4F"

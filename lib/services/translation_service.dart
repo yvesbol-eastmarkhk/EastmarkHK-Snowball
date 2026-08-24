@@ -4,8 +4,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
-import '../config/secrets.dart';
 import 'apple_intelligence_channel.dart';
+import 'mistral_ai_service.dart';
 
 enum TranslationEngine { appleIntelligence, mistral }
 
@@ -52,6 +52,10 @@ class TranslationService {
     Map<String, String> source,
     String targetLanguageName,
   ) async {
+    final apiKey = await MistralAiService.loadApiKey();
+    if (apiKey.isEmpty) {
+      throw Exception('Mistral API key missing');
+    }
     final uri = Uri.parse('https://api.mistral.ai/v1/chat/completions');
 
     final prompt = '''
@@ -67,7 +71,7 @@ ${jsonEncode(source)}
     final response = await http.post(
       uri,
       headers: {
-        'Authorization': 'Bearer $mistralApiKey',
+        'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({

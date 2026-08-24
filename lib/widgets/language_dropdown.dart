@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n_controller.dart';
 import '../l10n/locale_names.dart';
+import '../services/mistral_ai_service.dart';
 import 'country_flag_icon.dart';
+import 'mistral_api_key_dialog.dart';
 
 /// Compact language field. Tapping it opens a fixed-size modal with a
 /// search box and a flag for each language — same pattern as e-Invoicing.
@@ -82,6 +84,7 @@ class _LanguagePickerModalState extends State<_LanguagePickerModal> {
     String code,
     String name, {
     bool force = false,
+    bool offeredKey = false,
   }) async {
     if (code == 'en' || code.startsWith('en_')) {
       await widget.l10n.setLanguage(code, name);
@@ -94,6 +97,14 @@ class _LanguagePickerModalState extends State<_LanguagePickerModal> {
       Future.delayed(const Duration(milliseconds: 250), () => false),
     ]);
     if (finishedFast) {
+      if (context.mounted) {
+        await _offerMistralKeyIfNeeded(
+          context,
+          code,
+          name,
+          offeredKey: offeredKey,
+        );
+      }
       if (context.mounted) _showTranslationProblem(context);
       return;
     }
@@ -150,10 +161,40 @@ class _LanguagePickerModalState extends State<_LanguagePickerModal> {
     );
 
     await future;
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-      _showTranslationProblem(context);
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    await _offerMistralKeyIfNeeded(
+      context,
+      code,
+      name,
+      offeredKey: offeredKey,
+    );
+    if (context.mounted) _showTranslationProblem(context);
+  }
+
+  Future<void> _offerMistralKeyIfNeeded(
+    BuildContext context,
+    String code,
+    String name, {
+    required bool offeredKey,
+  }) async {
+    if (offeredKey) return;
+    final problem = widget.l10n.lastError;
+    if (problem == null || !context.mounted) return;
+    if (!isMistralApiKeyMissingError(problem) &&
+        !problem.toLowerCase().contains('401') &&
+        !problem.toLowerCase().contains('invalid api key')) {
+      return;
     }
+    final saved = await showMistralApiKeyDialog(context, l10n: widget.l10n);
+    if (!saved || !context.mounted) return;
+    await _translateWithProgress(
+      context,
+      code,
+      name,
+      force: true,
+      offeredKey: true,
+    );
   }
 
   void _showTranslationProblem(BuildContext context) {

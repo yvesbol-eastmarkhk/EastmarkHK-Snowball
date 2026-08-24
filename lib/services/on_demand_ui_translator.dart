@@ -5,14 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
+import 'apple_intelligence_channel.dart';
 import 'mistral_ai_service.dart';
 import 'ui_translation_store.dart';
 
 typedef UiTranslateProgress = void Function(int done, int total, String engine);
 
 /// Translates the English UI catalog into a target language.
-/// 1) Apple's on-device Translation framework (macOS/iOS), if available.
-/// 2) Otherwise Mistral.
+/// 1) Apple Intelligence (on-device Foundation Models), if enabled.
+/// 2) Apple's on-device Translation framework, if available.
+/// 3) Otherwise Mistral.
 ///
 /// Ported from the same OnDemandUiTranslator used in the EastmarkHK
 /// e-Invoicing app, trimmed down to just UI-string translation.
@@ -64,13 +66,55 @@ class OnDemandUiTranslator {
     return false;
   }
 
+  static Future<Map<String, String>?> _translateAppleIntelligence({
+    required String languageName,
+    required UiTranslateProgress? onProgress,
+  }) async {
+    if (kIsWeb || !(Platform.isMacOS || Platform.isIOS)) return null;
+    if (!await AppleIntelligenceChannel.isAvailable()) return null;
+
+    final keys = AppStrings.en.keys.toList()..sort();
+    final result = <String, String>{};
+    onProgress?.call(0, keys.length, 'Apple Intelligence');
+
+    for (var i = 0; i < keys.length; i += _chunk) {
+      final chunk = keys.sublist(i, (i + _chunk).clamp(0, keys.length));
+      final payload = <String, String>{};
+      final tokensByKey = <String, List<String>>{};
+      for (final k in chunk) {
+        final (p, tokens) = _protect(AppStrings.en[k] ?? '');
+        payload[k] = p;
+        tokensByKey[k] = tokens;
+      }
+      final translated = await AppleIntelligenceChannel.translate(
+        source: payload,
+        targetLanguageName: languageName,
+      );
+      if (translated == null) return null;
+      for (final k in chunk) {
+        final t = translated[k];
+        if (t != null && t.trim().isNotEmpty) {
+          result[k] = _restore(t, tokensByKey[k] ?? const []);
+        }
+      }
+      onProgress?.call(result.length, keys.length, 'Apple Intelligence');
+    }
+
+    if (result.length < (keys.length * 0.5).floor()) return null;
+
+    for (final e in AppStrings.en.entries) {
+      result.putIfAbsent(e.key, () => e.value);
+    }
+    return result;
+  }
+
   static Future<Map<String, String>?> _translateApple({
     required String targetCode,
     required UiTranslateProgress? onProgress,
   }) async {
     final keys = AppStrings.en.keys.toList()..sort();
     final result = <String, String>{};
-    onProgress?.call(0, keys.length, 'Apple Intelligence');
+    onProgress?.call(0, keys.length, 'Apple Translation');
 
     final target = targetCode.replaceAll('_', '-');
 
@@ -100,7 +144,7 @@ class OnDemandUiTranslator {
       } catch (_) {
         return null;
       }
-      onProgress?.call(result.length, keys.length, 'Apple Intelligence');
+      onProgress?.call(result.length, keys.length, 'Apple Translation');
     }
 
     if (result.length < (keys.length * 0.5).floor()) return null;
@@ -169,19 +213,30 @@ class OnDemandUiTranslator {
 
     Map<String, String>? pack;
     Object? appleError;
-    if (await appleAvailable(normalized)) {
-      onProgress?.call(0, 1, 'Apple Intelligence');
+
+    try {
+      pack = await _translateAppleIntelligence(
+        languageName: languageName,
+        onProgress: onProgress,
+      );
+    } catch (e) {
+      appleError = e;
+      debugPrint('Apple Intelligence failed, trying Apple Translation: $e');
+    }
+
+    if (pack == null && await appleAvailable(normalized)) {
+      onProgress?.call(0, 1, 'Apple Translation');
       try {
-        pack = await _translateApple(targetCode: normalized, onProgress: onProgress);
+        pack = await _translateApple(
+          targetCode: normalized,
+          onProgress: onProgress,
+        );
       } catch (e) {
-        appleError = e;
+        appleError ??= e;
         debugPrint('Apple Translation failed, falling back to Mistral: $e');
       }
-    } else {
-      debugPrint(
-        'Apple Translation not available for $normalized — using Mistral.',
-      );
     }
+
     if (pack == null) {
       try {
         pack = await _translateMistral(
@@ -191,8 +246,8 @@ class OnDemandUiTranslator {
         );
       } catch (e) {
         final appleBit = appleError == null
-            ? 'Apple Translation was not used (unavailable on this Mac/device).'
-            : 'Apple Translation failed: $appleError';
+            ? 'Apple Intelligence / Translation was not used on this device.'
+            : 'Apple on-device translation failed: $appleError';
         throw Exception(
           '$appleBit Mistral fallback failed: $e',
         );
