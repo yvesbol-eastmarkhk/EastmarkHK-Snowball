@@ -1,7 +1,7 @@
 name: eastmarkhk_snowball
-description: "EastmarkHK Snowball — compound interest calculator."
+description: "EastmarkHK Snowball — dual-currency client growth reports."
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ">=3.12.0 <4.0.0"

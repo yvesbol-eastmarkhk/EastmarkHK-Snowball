@@ -39,6 +39,9 @@ class ReportPdfService {
     DateTime? exchangeAsOf,
     required double contributionAmount,
     required String? contributionFrequencyLabel,
+    String clientName = '',
+    String notes = '',
+    double? targetBalance,
     Uint8List? logoBytes,
   }) async {
     String pdfSymbol(String code) {
@@ -107,6 +110,17 @@ class ReportPdfService {
                         color: _Palette.brand,
                       ),
                     ),
+                    if (clientName.trim().isNotEmpty) ...[
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        '${l10n.t('preparedFor')} $clientName',
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _Palette.bodyText,
+                        ),
+                      ),
+                    ],
                     pw.SizedBox(height: 2),
                     pw.Text(
                       '${l10n.t('reportGeneratedOn')} $generatedOn',
@@ -118,6 +132,29 @@ class ReportPdfService {
             ],
           ),
           pw.SizedBox(height: 18),
+
+          if (notes.trim().isNotEmpty) ...[
+            pw.Text(
+              l10n.t('reportNotes'),
+              style: pw.TextStyle(
+                  fontSize: 12, fontWeight: pw.FontWeight.bold, color: _Palette.bodyText),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                color: _Palette.softBg,
+                borderRadius: pw.BorderRadius.circular(6),
+                border: pw.Border.all(color: _Palette.border, width: 0.5),
+              ),
+              child: pw.Text(
+                notes.trim(),
+                style: const pw.TextStyle(fontSize: 10, color: _Palette.bodyText),
+              ),
+            ),
+            pw.SizedBox(height: 18),
+          ],
 
           // Investment details.
           pw.Text(
@@ -136,6 +173,8 @@ class ReportPdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                if (clientName.trim().isNotEmpty)
+                  _detailRow(l10n.t('reportClient'), clientName),
                 _detailRow(l10n.t('initialInvestment'), fmt(result.totalPrincipal)),
                 _detailRow(l10n.t('investCurrency'), investCurrency),
                 _detailRow(l10n.t('referenceCurrency'), referenceCurrency),
@@ -148,6 +187,8 @@ class ReportPdfService {
                 _detailRow(l10n.t('annualRate'), '${_numberFormat.format(annualRatePercent)} %'),
                 _detailRow(l10n.t('numberOfYears'), '$years'),
                 _detailRow(l10n.t('compoundingFrequency'), compoundingLabel),
+                if (targetBalance != null && targetBalance > 0)
+                  _detailRow(l10n.t('targetBalance'), fmt(targetBalance)),
                 if (contributionAmount > 0 && contributionFrequencyLabel != null)
                   _detailRow(
                     l10n.t('contributionAmount'),

@@ -12,7 +12,7 @@
 set -eu
 trap 'echo "ERROR: ci_post_clone.sh failed at line $LINENO (exit $?)" >&2' ERR
 
-FLUTTER_VERSION="3.47.1"
+FLUTTER_VERSION="3.47.2"
 FLUTTER_CHANNEL="stable"
 FLUTTER_DIR="$HOME/flutter"
 BUILD_NUMBER_OFFSET="${BUILD_NUMBER_OFFSET:-0}"

@@ -231,6 +231,53 @@ class BreakdownDisplayRow {
   });
 }
 
+/// Binary-search the regular contribution (in [contributionFrequency] units)
+/// so [calculateCompoundGrowth] ends at [targetBalance]. Returns 0 if the
+/// principal already grows to the target with no extra contributions.
+/// Returns null if the target cannot be reached.
+double? requiredContributionForGoal({
+  required double principal,
+  required double annualRatePercent,
+  required int years,
+  required CompoundingFrequency compounding,
+  required double targetBalance,
+  ContributionFrequency contributionFrequency = ContributionFrequency.monthly,
+}) {
+  if (years <= 0 || targetBalance < 0) return null;
+
+  CalculationResult run(double contribution) => calculateCompoundGrowth(
+        principal: principal,
+        annualRatePercent: annualRatePercent,
+        years: years,
+        compounding: compounding,
+        contributionAmount: contribution,
+        contributionFrequency: contributionFrequency,
+      );
+
+  const epsilon = 0.05;
+  final withZero = run(0).finalBalance;
+  if (withZero >= targetBalance - epsilon) return 0;
+
+  var hi = (targetBalance - withZero).clamp(1.0, targetBalance);
+  for (var i = 0; i < 48; i++) {
+    if (run(hi).finalBalance >= targetBalance) break;
+    hi *= 2;
+    if (hi > 1e15) return null;
+  }
+  if (run(hi).finalBalance < targetBalance) return null;
+
+  var lo = 0.0;
+  for (var i = 0; i < 56; i++) {
+    final mid = (lo + hi) / 2;
+    if (run(mid).finalBalance >= targetBalance) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  return hi;
+}
+
 /// Monthly estimates followed by a year-total row after each December.
 List<BreakdownDisplayRow> breakdownTableRows(CalculationResult result) {
   final rows = <BreakdownDisplayRow>[];

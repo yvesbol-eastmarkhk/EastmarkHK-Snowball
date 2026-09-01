@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 import '../calculator.dart';
@@ -26,6 +27,10 @@ Future<void> showPdfReportDialog({
   required DateTime? exchangeAsOf,
   required double contributionAmount,
   required String? contributionFrequencyLabel,
+  String clientName = '',
+  String notes = '',
+  double? targetBalance,
+  String? fileName,
 }) {
   return showDialog<void>(
     context: context,
@@ -41,6 +46,10 @@ Future<void> showPdfReportDialog({
       exchangeAsOf: exchangeAsOf,
       contributionAmount: contributionAmount,
       contributionFrequencyLabel: contributionFrequencyLabel,
+      clientName: clientName,
+      notes: notes,
+      targetBalance: targetBalance,
+      fileName: fileName,
     ),
   );
 }
@@ -58,6 +67,10 @@ class _ReportPdfDialog extends StatefulWidget {
     required this.exchangeAsOf,
     required this.contributionAmount,
     required this.contributionFrequencyLabel,
+    required this.clientName,
+    required this.notes,
+    required this.targetBalance,
+    required this.fileName,
   });
 
   final L10nController l10n;
@@ -71,6 +84,10 @@ class _ReportPdfDialog extends StatefulWidget {
   final DateTime? exchangeAsOf;
   final double contributionAmount;
   final String? contributionFrequencyLabel;
+  final String clientName;
+  final String notes;
+  final double? targetBalance;
+  final String? fileName;
 
   @override
   State<_ReportPdfDialog> createState() => _ReportPdfDialogState();
@@ -82,7 +99,8 @@ class _ReportPdfDialogState extends State<_ReportPdfDialog> {
   bool _loading = true;
 
   L10nController get _l10n => widget.l10n;
-  String get _fileName => _l10n.t('reportFileName');
+  String get _fileName =>
+      widget.fileName ?? _l10n.t('reportFileName');
 
   @override
   void initState() {
@@ -116,6 +134,9 @@ class _ReportPdfDialogState extends State<_ReportPdfDialog> {
         exchangeAsOf: widget.exchangeAsOf,
         contributionAmount: widget.contributionAmount,
         contributionFrequencyLabel: widget.contributionFrequencyLabel,
+        clientName: widget.clientName,
+        notes: widget.notes,
+        targetBalance: widget.targetBalance,
         logoBytes: logoBytes,
       );
       if (!mounted) return;
@@ -133,11 +154,28 @@ class _ReportPdfDialogState extends State<_ReportPdfDialog> {
   }
 
   static const _filesChannel = MethodChannel('com.eastmarkhk.snowball/files');
+  static const _printChannel = MethodChannel('com.eastmarkhk.snowball/print');
+
+  Future<void> _printPdf(Uint8List bytes) async {
+    if (!kIsWeb && Platform.isAndroid) {
+      await _printChannel.invokeMethod<void>('printPdf', {
+        'fileName': _fileName,
+        'bytes': bytes,
+      });
+      return;
+    }
+    await Printing.layoutPdf(
+      onLayout: (_) async => bytes,
+      name: _fileName,
+      format: PdfPageFormat.a4,
+      dynamicLayout: false,
+    );
+  }
 
   Future<void> _print() async {
     final bytes = _bytes;
     if (bytes == null) return;
-    await Printing.layoutPdf(onLayout: (_) async => bytes, name: _fileName);
+    await _printPdf(bytes);
   }
 
   void _toast(String message) {
@@ -213,10 +251,7 @@ class _ReportPdfDialogState extends State<_ReportPdfDialog> {
                         ),
                       ),
                       FilledButton.icon(
-                        onPressed: () => Printing.layoutPdf(
-                          onLayout: (_) async => bytes,
-                          name: _fileName,
-                        ),
+                        onPressed: () => _printPdf(bytes),
                         icon: const Icon(Icons.print_outlined, size: 18),
                         label: Text(_l10n.t('reportPrint')),
                       ),
