@@ -10,6 +10,33 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+FLUTTER=""
+if command -v fvm >/dev/null && [[ -f ".fvmrc" || -d ".fvm" ]]; then
+  FLUTTER="fvm flutter"
+elif [[ -x ".fvm/flutter_sdk/bin/flutter" ]]; then
+  FLUTTER="$ROOT/.fvm/flutter_sdk/bin/flutter"
+elif command -v flutter >/dev/null; then
+  FLUTTER="flutter"
+else
+  for c in "$HOME/fvm/default/bin" \
+           "$HOME/development/flutter/bin" "$HOME/flutter/bin"; do
+    if [[ -x "$c/flutter" ]]; then
+      export PATH="$PATH:$c"
+      FLUTTER="flutter"
+      break
+    fi
+  done
+fi
+if [[ -z "$FLUTTER" ]]; then
+  echo "error: Flutter not found. Install FVM: brew install fvm && fvm use 3.47.2" >&2
+  exit 1
+fi
+
+DART_DEFINES=()
+if [[ -f "$ROOT/dart_defines.json" ]]; then
+  DART_DEFINES+=(--dart-define-from-file=dart_defines.json)
+fi
+
 APP_DISPLAY_NAME="EastmarkHK Snowball"
 APP_FILE_NAME="${APP_DISPLAY_NAME}.app"
 VERSION_LINE="$(grep '^version:' "$ROOT/pubspec.yaml" | head -1 | awk '{print $2}')"
@@ -48,9 +75,11 @@ if [[ ! -f "$LOGO" ]]; then
 fi
 
 if [[ "$SKIP_BUILD" != "1" ]]; then
-  echo "==> Flutter build (macos release)…"
-  flutter pub get
-  flutter build macos --release
+  echo "==> Flutter build (macos release) via ${FLUTTER} ..."
+  # shellcheck disable=SC2086
+  $FLUTTER pub get
+  # shellcheck disable=SC2086
+  $FLUTTER build macos --release "${DART_DEFINES[@]}"
 else
   echo "==> SKIP_BUILD=1 — reusing existing Release .app"
 fi

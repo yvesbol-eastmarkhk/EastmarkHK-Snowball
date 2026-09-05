@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/l10n_controller.dart';
 import '../services/mistral_ai_service.dart';
+import '../utils/eastmark_brand.dart';
 import '../widgets/eastmark_footer.dart';
 import '../widgets/language_dropdown.dart';
 
@@ -16,6 +18,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _keyCtrl = TextEditingController();
+  final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
   bool _obscure = true;
   bool _saving = false;
   bool _hasStored = false;
@@ -96,6 +99,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _status = l10n.t('settingsMistralKeyCleared');
       _statusError = null;
     });
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (opened || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.t('settingsCouldNotOpenLink'))),
+    );
   }
 
   @override
@@ -224,6 +236,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Text(l10n.t('clear')),
                   ),
                 ],
+              ),
+              const SizedBox(height: 32),
+              Text(
+                l10n.t('settingsCompany'),
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                EastmarkBrand.legalName,
+                style: theme.textTheme.bodyLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              SelectableText(EastmarkBrand.addressLines.join('\n')),
+              const SizedBox(height: 8),
+              const SelectableText(EastmarkBrand.phone),
+              const SelectableText(EastmarkBrand.email),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () => _openUrl(EastmarkBrand.websiteUrl),
+                child: Text(
+                  EastmarkBrand.websiteUrl,
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.privacy_tip_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(l10n.t('settingsPrivacyReport')),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _openUrl(EastmarkBrand.privacyReportUrl),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.policy_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(l10n.t('settingsPrivacyPolicy')),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _openUrl(EastmarkBrand.privacyPolicyUrl),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.support_agent_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(l10n.t('settingsSupport')),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => _openUrl(EastmarkBrand.supportUrl),
+              ),
+              const SizedBox(height: 8),
+              FutureBuilder<PackageInfo>(
+                future: _packageInfo,
+                builder: (context, snap) {
+                  final info = snap.data;
+                  if (info == null) {
+                    return const SizedBox.shrink();
+                  }
+                  final build = info.buildNumber.isEmpty ? '—' : info.buildNumber;
+                  return Text(
+                    l10n
+                        .t('settingsAppVersion')
+                        .replaceAll('{version}', info.version)
+                        .replaceAll('{build}', build),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  );
+                },
               ),
             ],
           ),

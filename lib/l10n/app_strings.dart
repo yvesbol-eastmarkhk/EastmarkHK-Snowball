@@ -41,6 +41,12 @@ class AppStrings {
     'settingsMistralKeyMissing': 'No key saved on this device.',
     'settingsMistralKeyCleared': 'Key removed from this device.',
     'settingsMistralSaving': 'Checking the key…',
+    'settingsCompany': 'Company',
+    'settingsPrivacyReport': 'Privacy report',
+    'settingsPrivacyPolicy': 'Privacy policy',
+    'settingsSupport': 'Support',
+    'settingsCouldNotOpenLink': 'Could not open the link.',
+    'settingsAppVersion': 'Version {version} (build: {build})',
 
     'appTagline': 'Dual-currency client growth reports',
     'clientReports': 'Client reports',

@@ -1,7 +1,7 @@
 name: eastmarkhk_snowball
 description: "EastmarkHK Snowball — dual-currency client growth reports."
 publish_to: "none"
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ">=3.12.0 <4.0.0"
@@ -20,11 +20,29 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
   flutter_native_splash: ^2.4.6
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  msix: ^3.18.0
+
+# Microsoft Store / sideload MSIX (build on Windows only).
+# Sideload:  powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1
+# Store:     tool\build_msix.ps1 -Store with Partner Center identity values.
+# Store revision (4th digit) must stay 0 — e.g. 1.0.0.0 not 1.0.0.3.
+msix_config:
+  display_name: EastmarkHK Snowball
+  publisher_display_name: EastmarkHK
+  identity_name: EastmarkHK.Snowball
+  msix_version: 1.0.0.0
+  logo_path: assets/logo_full.png
+  capabilities: internetClient
+  languages: en-us
+  output_name: EastmarkHK-Snowball
+  install_certificate: false
+  store: false
 
 flutter:
   uses-material-design: true

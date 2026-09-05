@@ -54,3 +54,6 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Windows MSIX copy folder (created by tool/build_msix.ps1)
+/windows/build/
