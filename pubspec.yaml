@@ -29,13 +29,16 @@ dev_dependencies:
   msix: ^3.18.0
 
 # Microsoft Store / sideload MSIX (build on Windows only).
+# Store:     powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1 -Store
 # Sideload:  powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1
-# Store:     tool\build_msix.ps1 -Store with Partner Center identity values.
+# Partner Center: Store ID 9N1HX1C468PB
+# PFN: EastmarkHK.EastmarkHKSnowball_rz3rjabnhm45p
 # Store revision (4th digit) must stay 0 — e.g. 1.0.0.0 not 1.0.0.3.
 msix_config:
   display_name: EastmarkHK Snowball
   publisher_display_name: EastmarkHK
-  identity_name: EastmarkHK.Snowball
+  identity_name: EastmarkHK.EastmarkHKSnowball
+  publisher: CN=212682DE-ED59-450E-8549-6B3A3B441865
   msix_version: 1.0.0.0
   logo_path: assets/logo_full.png
   capabilities: internetClient

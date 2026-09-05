@@ -7,18 +7,23 @@
   powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1 -Store `
-    -IdentityName "EastmarkHK.Snowball" `
-    -Publisher "CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" `
-    -PublisherDisplayName "EastmarkHK" `
-    -MsixVersion "1.0.0.0"
+  powershell -ExecutionPolicy Bypass -File tool\build_msix.ps1 -Store
 #>
 
 param(
   [switch]$Store,
-  [string]$IdentityName = $env:EMHK_STORE_IDENTITY_NAME,
-  [string]$Publisher = $env:EMHK_STORE_PUBLISHER,
-  [string]$PublisherDisplayName = $env:EMHK_STORE_PUBLISHER_DISPLAY_NAME,
+  [string]$IdentityName = $(
+    if ($env:EMHK_STORE_IDENTITY_NAME) { $env:EMHK_STORE_IDENTITY_NAME }
+    else { 'EastmarkHK.EastmarkHKSnowball' }
+  ),
+  [string]$Publisher = $(
+    if ($env:EMHK_STORE_PUBLISHER) { $env:EMHK_STORE_PUBLISHER }
+    else { 'CN=212682DE-ED59-450E-8549-6B3A3B441865' }
+  ),
+  [string]$PublisherDisplayName = $(
+    if ($env:EMHK_STORE_PUBLISHER_DISPLAY_NAME) { $env:EMHK_STORE_PUBLISHER_DISPLAY_NAME }
+    else { 'EastmarkHK' }
+  ),
   [string]$MsixVersion = ''
 )
 
