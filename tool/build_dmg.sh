@@ -28,7 +28,7 @@ else
   done
 fi
 if [[ -z "$FLUTTER" ]]; then
-  echo "error: Flutter not found. Install FVM: brew install fvm && fvm use 3.47.2" >&2
+  echo "error: Flutter not found. Install FVM: brew install fvm && fvm use 3.47.6" >&2
   exit 1
 fi
 
